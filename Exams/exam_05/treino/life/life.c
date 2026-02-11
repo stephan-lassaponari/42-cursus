@@ -2,11 +2,11 @@
 #include <unistd.h>
 #include <stdio.h>
 
-void print_array(char **arr, int width, int height)
+void print_array(char **arr, int w, int h)
 {
-	for(int i = 0; i < height; i++)
+	for(int i = 0; i < h; i++)
 	{
-		for(int j = 0; j < width; j++)
+		for(int j = 0; j < w; j++)
 		{
 			putchar(arr[i][j]);
 		}
@@ -14,13 +14,13 @@ void print_array(char **arr, int width, int height)
 	}
 }
 
-char **create_array(int width, int height)
+char **create_array(int w, int h)
 {
-	char **arr = malloc(sizeof(char *) * height);
-	for(int i = 0; i < height; i++)
+	char **arr = malloc(sizeof(char *) * h);
+	for(int i = 0; i < h; i++)
 	{
-		arr[i] = malloc(width);
-		for(int j = 0; j < width; j++)
+		arr[i] = malloc(w);
+		for(int j = 0; j < w; j++)
 		{
 			arr[i][j] = ' ';
 		}
@@ -28,14 +28,14 @@ char **create_array(int width, int height)
 	return arr;
 }
 
-void free_array(char **arr, int height)
+void free_array(char **arr, int h)
 {
-	for(int i = 0; i < height; i++)
+	for(int i = 0; i < h; i++)
 		free(arr[i]);
 	free(arr);
 }
 
-void draw_pattern(char **arr, int width, int height)
+void draw_pattern(char **arr, int w, int h)
 {
 	int x = 0, y = 0;
 	int drawing = 0;
@@ -47,19 +47,19 @@ void draw_pattern(char **arr, int width, int height)
 			drawing = !drawing;
 		else if (c == 'w' && y > 0)
 			y--;
-		else if (c == 's' && y < height - 1)
+		else if (c == 's' && y < h - 1)
 			y++;
 		else if (c == 'a' && x > 0)
 			x--;
-		else if (c == 'd' && x < width - 1)
+		else if (c == 'd' && x < w - 1)
 			x++;
 
-		if (drawing && x >= 0 && x < width && y >= 0 && y < height)
+		if (drawing && x >= 0 && x < w && y >= 0 && y < h)
 			arr[y][x] = '0';
 	}
 }
 
-int count_neighbors(char **arr, int width, int height, int y, int x)
+int count_n(char **arr, int w, int h, int y, int x)
 {
 	int count = 0;
 
@@ -73,7 +73,7 @@ int count_neighbors(char **arr, int width, int height, int y, int x)
 			int ny = y + dy;
 			int nx = x + dx;
 
-			if (ny >= 0 && ny < height && nx >= 0 && nx < width)
+			if (ny >= 0 && ny < h && nx >= 0 && nx < w)
 			{
 				if (arr[ny][nx] == '0')
 					count++;
@@ -83,26 +83,26 @@ int count_neighbors(char **arr, int width, int height, int y, int x)
 	return count;
 }
 
-void game_of_life(char **arr, int width, int height)
+void game_of_life(char **arr, int w, int h)
 {
-	char **new_arr = create_array(width, height);
+	char **new_arr = create_array(w, h);
 
-	for(int i = 0; i < height; i++)
+	for(int i = 0; i < h; i++)
 	{
-		for(int j = 0; j < width; j++)
+		for(int j = 0; j < w; j++)
 		{
-			int neighbors = count_neighbors(arr, width, height, i, j);
+			int n = count_n(arr, w, h, i, j);
 
 			if (arr[i][j] == '0')
 			{
-				if (neighbors == 2 || neighbors == 3)
+				if (n == 2 || n == 3)
 					new_arr[i][j] = '0';
 				else
 					new_arr[i][j] = ' ';
 			}
 			else
 			{
-				if (neighbors == 3)
+				if (n == 3)
 					new_arr[i][j] = '0';
 				else
 					new_arr[i][j] = ' ';
@@ -110,15 +110,15 @@ void game_of_life(char **arr, int width, int height)
 		}
 	}
 
-	for(int i = 0; i < height; i++)
+	for(int i = 0; i < h; i++)
 	{
-		for(int j = 0; j < width; j++)
+		for(int j = 0; j < w; j++)
 		{
 			arr[i][j] = new_arr[i][j];
 		}
 	}
 
-	free_array(new_arr, height);
+	free_array(new_arr, h);
 }
 
 int main(int ac, char **av)
@@ -126,21 +126,21 @@ int main(int ac, char **av)
 	if (ac != 4)
 		return 1;
 
-	int width = atoi(av[1]);
-	int height = atoi(av[2]);
-	int iterations = atoi(av[3]);
+	int w = atoi(av[1]);
+	int h = atoi(av[2]);
+	int it = atoi(av[3]);
 
-	char **arr = create_array(width, height);
+	char **arr = create_array(w, h);
 
-	draw_pattern(arr, width, height);
+	draw_pattern(arr, w, h);
 
-	for(int i = 0; i < iterations; i++)
+	for(int i = 0; i < it; i++)
 	{
-		game_of_life(arr, width, height);
+		game_of_life(arr, w, h);
 	}
 
-	print_array(arr, width, height);
-	free_array(arr, height);
+	print_array(arr, w, h);
+	free_array(arr, h);
 
 	return 0;
 }
