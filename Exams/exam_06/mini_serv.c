@@ -42,7 +42,7 @@ int create_server(char *port)
 	struct sockaddr_in addr;
 	bzero(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	addr.sin_port = htons(atoi(port));
 
 	if(bind(fd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
