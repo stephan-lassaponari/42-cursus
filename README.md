@@ -44,10 +44,4 @@ All my 42 projects are linked here.
 
 ### Rank 6
 
-- [ ] [ft_transcendence]() (pending)
-
-https://github.com/leite-tiago/42_school/
-https://github.com/achrafelkhnissi
-https://github.com/gemartin99/
-https://github.com/davda-si
-
+- [x] [ft_transcendence](https://github.com/stephan-lassaponari/ft_transcendence) (125%)
