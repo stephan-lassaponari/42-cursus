@@ -1,153 +1,132 @@
-# Plano de memorização — `mini_serv`
+# Plano de estudo — `mini_serv`
 
-**Período:** terça-feira, 13/10, a quarta-feira, 21/10
-**Meta:** conseguir escrever de memória a versão de `mini_serv.c` que já foi entregue, compilar e fazer os testes básicos. O plano é de memorização e reprodução; não exige estudar a teoria do código.
+**Período:** quinta-feira, 15/10, a quarta-feira, 21/10
 
-## Método para cada bloco
+**Estratégia para o exame:** copiar o `main.c` fornecido e usá-lo como esqueleto, em vez de tentar escrever o servidor inteiro do zero.
 
-Use sempre o mesmo ciclo:
+**Meta:** saber o que preservar, o que substituir e como testar a solução dentro do tempo do exame.
 
-1. Leia o bloco no arquivo original por 2 minutos.
-2. Feche ou cubra o original e escreva o bloco do zero, no papel ou num arquivo de treino.
-3. Compare com o original e anote somente o que esqueceu ou escreveu diferente.
-4. Corrija esses pontos e escreva o bloco novamente sem olhar.
-5. No começo da sessão seguinte, tente reproduzir os blocos anteriores antes de consultar o original.
+## O que fazer com o `main.c` fornecido
 
-**Não edite nem substitua o `mini_serv.c` original durante os treinos.** Use papel ou um arquivo separado. Tente escrever cada bloco corretamente três vezes antes de avançar.
+O `main.c` é uma base, não uma solução pronta. Copie-o para o ficheiro de entrega e adapte-o ao subject:
 
-## Blocos do arquivo
+- Preserve a criação do socket, a configuração de `sockaddr_in`, o `bind` e o `listen`.
+- Preserve o endereço `127.0.0.1`, mas substitua a porta fixa por `htons(atoi(av[1]))`.
+- Adicione a validação `ac == 2` e escreva exatamente `Wrong number of arguments\n` em `stderr` quando falhar.
+- Substitua mensagens de diagnóstico como `printf` e saídas com status incorreto por `write`/`Fatal error\n` e status 1, conforme o caso.
+- Não mantenha o único `accept` bloqueante do exemplo. Inicialize os `fd_set` e use `select` num ciclo para aceitar clientes e ler dados de todos eles.
+- Ao aceitar um cliente, atribua o próximo ID, registe o descritor e avise os clientes existentes.
+- Ao receber dados, acumule o texto até às quebras de linha, prefixe cada linha com `client %d: ` e envie aos outros clientes.
+- Ao receber `recv <= 0`, avise os restantes clientes, remova o descritor do conjunto e feche-o.
 
-Memorize nesta ordem, usando os nomes das funções como pistas:
+O subject avisa que o ficheiro de exemplo pode usar funções proibidas ou conter código que não deve ir para a entrega. Antes de copiar cada trecho, confira-o contra a lista de funções permitidas.
 
-1. Includes, `t_client`, variáveis globais e `err`.
-2. `send_all` e `create_server`.
-3. `add_client` e `remove_client`.
-4. `handle_msg`.
-5. `main`.
+## Ordem para montar a solução no exame
 
-Não tente decorar o arquivo inteiro de uma vez. A cada dia, some o bloco novo aos anteriores.
+Treine sempre esta sequência, com o `main.c` aberto como referência inicial:
 
-## Rotina diária sugerida
+1. Copie o exemplo para `mini_serv.c`; confira nome do ficheiro e includes necessários.
+2. Ajuste `main` primeiro: argumentos, criação do socket, endereço loopback, porta por argumento, `bind` e `listen`.
+3. Prepare o estado global: IDs, buffers, clientes e conjuntos de descritores; faça `FD_ZERO` antes do primeiro `FD_SET`.
+4. Complete as funções de apoio para erro fatal, notificação, entrada/saída de clientes e envio de mensagens.
+5. Troque o `accept` único por `select`: socket do servidor pronto significa novo cliente; outro descritor pronto significa `recv`.
+6. Compile com `-Wall -Wextra -Werror` e corrija primeiro erros de compilação; depois valide as mensagens e desconexões.
 
-Reserve cerca de **1h30 por dia**:
+**Ponto-chave:** não tente adaptar o exemplo linha a linha sem entender o fluxo. O maior salto é trocar “aceitar um cliente” por “monitorizar servidor e clientes com `select`”.
 
-- **10 min:** escreva de memória o que estudou no dia anterior.
-- **25 min:** treine o bloco novo ou o ponto que mais errou.
+## Rotina diária
+
+Reserve cerca de **1h30**:
+
+- **10 min:** reproduza de memória o fluxo geral e os nomes das funções.
+- **25 min:** treine a transformação do `main.c` do dia.
 - **5 min:** pausa.
-- **25 min:** reproduza todos os blocos já estudados, em sequência e sem consultar.
-- **15 min:** compare com o original, corrija os erros e repita os trechos errados.
-- **10 min:** diga em voz alta a ordem dos blocos e os nomes das funções, sem explicar a teoria.
+- **25 min:** escreva a solução por blocos, começando pelo esqueleto do exemplo.
+- **15 min:** compare com a solução de referência e registe apenas os erros.
+- **10 min:** repita os trechos errados sem consultar.
 
-Nos dias de simulado, use mais tempo se precisar e faça uma pausa entre as tentativas.
+Nos simulados, use o tempo real do exame, se o souber. Não memorize mensagens ou código de diagnóstico do exemplo.
 
 ## Calendário
 
-### Terça, 13/10 — Preparação e primeiro bloco
+### Quinta, 15/10 — Ler o esqueleto
 
-- Separe o original para consulta e prepare papel ou um arquivo de treino em branco.
-- No WSL, vá até a pasta e compile o original:
-  ```bash
-  cd /mnt/c/Users/steph/Documents/mini_serv
-  gcc -Wall -Wextra -Werror mini_serv.c -o mini_serv
-  ```
-- Treine o **bloco 1** até escrevê-lo corretamente três vezes.
-- Faça uma tentativa final do bloco 1 sem olhar e encerre a sessão.
+- **Funções:** `main`, `create_socket`, `fatal_error`.
+- Leia o subject e marque os requisitos, as funções permitidas e as mensagens exatas.
+- Leia o `main.c` e classifique cada trecho como **manter**, **alterar** ou **remover**.
+- Treine copiar o `main.c` e fazer as alterações de argumentos, porta, endereço e erros.
+- Explique em voz alta por que o `accept` único não atende ao exercício.
 
-### Quarta, 14/10 — `send_all` e `create_server`
+### Sexta, 16/10 — Clientes e mensagens
 
-- Comece reproduzindo o bloco 1 sem consultar.
-- Estude e treine o **bloco 2** pelo ciclo de memorização.
-- Escreva os blocos 1 e 2 juntos, na ordem, duas vezes.
-- Se esquecer algo, anote o trecho exato e repita esse trecho antes de encerrar.
+- **Funções:** `add_client`, `remove_client`, `notify`, `send_msg`, `extract_message`, `str_join`.
+- Reproduza as alterações do dia anterior sem consultar apontamentos.
+- Treine a atribuição sequencial de IDs e as mensagens de chegada e saída.
+- Reproduza o processamento de mensagens completas e fragmentadas em várias leituras.
+- Confirme que cada linha recebida ganha o prefixo correto e não volta ao remetente.
 
-### Quinta, 15/10 — Entrada e saída de clientes
+### Sábado, 17/10 — `select`
 
-- Reproduza os blocos 1 e 2 sem olhar.
-- Estude e treine o **bloco 3**: `add_client` e `remove_client`.
-- Escreva os blocos 1 a 3 em sequência.
-- Termine com uma tentativa de memória e compare só no final.
+- **Funções e chamadas:** `main`, `create_socket`, `add_client`, `remove_client`, `send_msg`; integre `select`, `accept` e `recv` no ciclo principal.
+- Desenhe de memória o ciclo: copiar o conjunto ativo, chamar `select`, percorrer descritores e tratar servidor ou cliente.
+- Escreva o ciclo completo a partir do `main.c`.
+- Treine remoção do cliente: notificar, `FD_CLR`, `close` e libertar o buffer.
+- Compile e corrija erros sem consultar a solução até ter uma primeira tentativa funcional.
 
-### Sexta, 16/10 — `handle_msg`
+### Domingo, 18/10 — Primeiro simulado
 
-- Reproduza os blocos 1 a 3 sem consultar.
-- Estude e treine o **bloco 4**.
-- Escreva os blocos 1 a 4 juntos.
-- Repita separadamente as linhas que confundiu ou esqueceu.
+- **Funções:** reproduza todas — `fatal_error`, `notify`, `add_client`, `remove_client`, `send_msg`, `create_socket`, `extract_message`, `str_join` e `main`.
+- Comece de uma cópia limpa do `main.c`, como fará no exame.
+- Complete o ficheiro sem consultar a solução de referência.
+- Compile com `gcc -Wall -Wextra -Werror`.
+- Compare e anote erros de ordem, argumentos, IDs, mensagens e descritores.
 
-### Sábado, 17/10 — `main` e primeira reprodução completa
+### Segunda, 19/10 — Simulado cronometrado
 
-- Faça uma revisão curta dos blocos 1 a 4.
-- Estude e treine o **bloco 5**, `main`.
-- Escreva o arquivo inteiro de memória, sem cronômetro.
-- Compare com o original e marque os erros por bloco; não recomece o arquivo inteiro por causa de um erro localizado.
+- **Funções:** todas as funções do programa, com atenção especial à integração em `main`.
+- Repita o exercício usando o tempo real do exame ou **75 minutos** como referência.
+- Faça os testes básicos com dois clientes: chegada, envio de várias linhas e saída.
+- Corrija apenas o que falhou e repita esses trechos.
 
-### Domingo, 18/10 — Primeiro simulado completo
+### Terça, 20/10 — Fixação
 
-- Sem consultar o original, escreva o arquivo inteiro do zero.
-- Depois compare e conte os erros: nomes, ordem, argumentos e linhas esquecidas.
-- Treine apenas os blocos com erros e faça uma segunda tentativa completa.
-- Se ainda estiver difícil, use o resto da sessão para repetir os blocos mais fracos, não para reler tudo passivamente.
-
-### Segunda, 19/10 — Simulado com tempo
-
-- Faça uma reprodução completa usando um cronômetro. Se souber o tempo do exame, use esse tempo; se não souber, use **75 minutos**.
-- Compile a reprodução no WSL:
-  ```bash
-  gcc -Wall -Wextra -Werror mini_serv_treino.c -o mini_serv_treino
-  ```
-- Corrija os erros e faça mais uma tentativa cronometrada, concentrando-se nos trechos que falharam.
-
-### Terça, 20/10 — Fixação final
-
-- Faça duas reproduções completas, com uma pausa entre elas.
-- Na primeira, pode consultar o original somente depois de terminar.
-- Na segunda, não consulte nada e compile ao final.
-- Revise apenas a sua lista de erros. Não tente mudar ou “melhorar” a versão que já foi entregue.
+- **Funções:** todas, em duas reproduções completas iniciadas pelo esqueleto do `main.c`.
+- Faça duas reproduções a partir do `main.c`, com uma pausa entre elas.
+- Na segunda, use cronómetro e não consulte apontamentos.
+- Reserve o fim para compilar e executar os testes básicos.
 
 ### Quarta, 21/10 — Dia do exame
 
-- Faça um aquecimento leve de **20 a 30 minutos**: escreva de memória a ordem dos blocos e os trechos que costumam escapar.
-- Se houver tempo, reproduza uma vez as funções mais difíceis; não faça uma maratona nem tente aprender conteúdo novo.
-- No exame, escreva os blocos na ordem treinada e reserve os minutos finais para comparar nomes, chaves, parênteses e ponto e vírgula.
+- **Revisão:** `main`, `create_socket`, `fatal_error`, `notify`, `add_client`, `remove_client`, `send_msg`, `extract_message` e `str_join`.
+- Faça um aquecimento leve de **20 a 30 minutos**: requisitos, mensagens exatas e ciclo `select`.
+- No exame, leia o subject antes de copiar o exemplo: confirme funções permitidas e detalhes pedidos.
+- Copie o `main.c`, aplique as alterações na sequência treinada e compile.
+- Use o tempo restante para verificar argumentos, erros fatais, IDs, prefixos, múltiplas linhas e desconexões.
 
-## Teste rápido no WSL
+## Testes rápidos em Linux/WSL
 
-Faça este teste em casa depois de compilar. Use três terminais WSL:
-
-1. No primeiro, inicie o servidor:
-   ```bash
-   ./mini_serv 4242
-   ```
-2. No segundo e no terceiro, conecte dois clientes:
-   ```bash
-   nc 127.0.0.1 4242
-   ```
-3. Escreva `oi` no segundo cliente e pressione Enter. Confira se o outro cliente recebe a mensagem.
-4. Feche um cliente e confira se o outro recebe o aviso de saída.
-
-Também teste a execução sem argumentos:
+Compile apenas o ficheiro da solução:
 
 ```bash
-./mini_serv
+gcc -Wall -Wextra -Werror mini_serv.c -o mini_serv
 ```
 
-Ela deve mostrar `Wrong number of arguments`. Não compile `main.c` junto com `mini_serv.c`; para este exercício, pratique o arquivo `mini_serv.c`.
+Abra três terminais:
 
-Se o comando `nc` não existir no WSL, instale-o uma vez com:
+1. Inicie o servidor: `./mini_serv 4242`
+2. Em cada um dos outros terminais, ligue um cliente: `nc 127.0.0.1 4242`
+3. Verifique o aviso de chegada, envie várias linhas e confirme que o outro cliente recebe cada linha com o prefixo.
+4. Feche um cliente e confirme o aviso de saída no que permaneceu ligado.
+5. Execute `./mini_serv` sem argumentos e confirme `Wrong number of arguments`.
 
-```bash
-sudo apt update
-sudo apt install netcat-openbsd
-```
+Não compile `main.c` junto com `mini_serv.c`: o `main.c` é o esqueleto fornecido para copiar e adaptar, não uma unidade adicional do programa final.
 
 ## Controle de progresso
 
-- [ ] 13/10 — bloco 1 escrito de memória três vezes
-- [ ] 14/10 — blocos 1 e 2 escritos juntos
-- [ ] 15/10 — blocos 1 a 3 escritos juntos
-- [ ] 16/10 — blocos 1 a 4 escritos juntos
-- [ ] 17/10 — primeira reprodução integral
-- [ ] 18/10 — simulado integral sem consulta
-- [ ] 19/10 — simulado integral cronometrado e compilado
-- [ ] 20/10 — duas reproduções integrais
-- [ ] 21/10 — aquecimento leve antes do exame
+- [ ] 15/10 — classificar o `main.c` em manter, alterar e remover
+- [ ] 16/10 — reproduzir IDs e processamento de mensagens
+- [ ] 17/10 — montar e compilar o ciclo `select`
+- [ ] 18/10 — primeiro simulado completo
+- [ ] 19/10 — simulado cronometrado e testes básicos
+- [ ] 20/10 — duas reproduções a partir do esqueleto
+- [ ] 21/10 — aquecimento leve e execução seguindo o subject
