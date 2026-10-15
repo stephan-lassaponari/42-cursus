@@ -10,7 +10,7 @@
 int count = 0, max_fd = 0;
 int ids[70000];
 char *msgs[70000];
-fd_set rfds, wfds, afds;
+fd_set rfd, wfd, afd;
 char buf_read[1001], buf_write[42];
 
 int extract_message(char **buf, char **msg)
@@ -69,7 +69,7 @@ void	fatal_error()
 void	notify(int author, char *str)
 {
 	for (int fd = 0; fd <= max_fd; fd++)
-		if (FD_ISSET(fd, &wfds) && fd != author)
+		if (FD_ISSET(fd, &wfd) && fd != author)
 			send(fd, str, strlen(str), 0);
 }
 
@@ -78,7 +78,7 @@ void	add_client(int fd)
 	max_fd = fd > max_fd ? fd : max_fd;
 	msgs[fd] = NULL;
 	ids[fd] = count++;
-	FD_SET(fd, &afds);
+	FD_SET(fd, &afd);
 	sprintf(buf_write, "server: client %d just arrived\n", ids[fd]);
 	notify(fd, buf_write);
 }
@@ -87,7 +87,7 @@ void	remove_client(int fd)
 {
 	sprintf(buf_write, "server: client %d just left\n", ids[fd]);
 	notify(fd, buf_write);
-	FD_CLR(fd, &afds);
+	FD_CLR(fd, &afd);
 	free(msgs[fd]);
 	close(fd);
 }
@@ -110,7 +110,7 @@ int	create_socket(void)
 	max_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (max_fd < 0)
 		fatal_error();
-	FD_SET(max_fd, &afds);
+	FD_SET(max_fd, &afd);
 	return (max_fd);
 }
 
@@ -123,7 +123,7 @@ int main(int ac, char **av) {
 	int sockfd;
 	struct sockaddr_in servaddr;
 
-	FD_ZERO(&afds);
+	FD_ZERO(&afd);
 	sockfd = create_socket();
 	bzero(&servaddr, sizeof(servaddr));
 
@@ -140,12 +140,12 @@ int main(int ac, char **av) {
 
 	while(1)
 	{
-		rfds = wfds = afds;
-		if (select(max_fd + 1, &rfds, &wfds, NULL, NULL) < 0)
+		rfd = wfd = afd;
+		if (select(max_fd + 1, &rfd, &wfd, NULL, NULL) < 0)
 			fatal_error();
 		for (int fd = 0; fd <= max_fd; fd++)
 		{
-			if (!FD_ISSET(fd, &rfds))
+			if (!FD_ISSET(fd, &rfd))
 				continue;
 			if (fd == sockfd)
 			{
